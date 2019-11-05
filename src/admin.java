@@ -46,6 +46,7 @@ public class admin {
 			countAmb.quantidade+=1;
 			//System.out.println("Quantidade de Ambiente é: "+countAmb.quantidade);
 			space.write(countAmb, null, Lease.FOREVER);
+			System.out.println("\n************AMBIENTE ADICIONADO***********\n");
 		} catch (Exception e) {
             e.printStackTrace();
         }
@@ -98,6 +99,7 @@ public class admin {
 			countDisp.quantidade+=1;
 			//System.out.println("Quantidade de Dispositivos são: "+countDisp.quantidade);
 			space.write(countDisp, null, Lease.FOREVER);
+			System.out.println("\n**********Dispositivo ADICIONADO**********\n");
 		} catch (Exception e) {
             e.printStackTrace();
         }
@@ -157,10 +159,10 @@ public class admin {
 	
 	public static boolean PodeRemoverAmbiente(JavaSpace space,String ambiente) {
 		if((ListaDispositivos(space,ambiente).size()==0) && (ListaUsuarios(space,ambiente).size()==0)) {
-			System.out.println("O ambiente "+ambiente+" pode ser removido");
+			//System.out.println("O ambiente "+ambiente+" pode ser removido");
 			return true;
         }
-		System.out.println("O ambiente "+ambiente+" não pode ser removido");
+		System.out.println("\n**O AMBIENTE "+ambiente+" NÃO PODE SER REMOVIDO***\n");
 		return false;
 	}
 	
@@ -193,6 +195,7 @@ public class admin {
 			countDisp.quantidade-=1;
 			space.write(countDisp, null, Lease.FOREVER);
 			space.take(templateDispositivo, null, 60 * 1000);
+			System.out.println("***********DISPOSITIVO REMOVIDO***********\n");
 		} catch (Exception e) {
             e.printStackTrace();
         }
@@ -210,6 +213,7 @@ public class admin {
 				countAmb.quantidade-=1;
 				space.write(countAmb, null, Lease.FOREVER);
 				space.take(templateAmb, null, 60 * 1000);
+				System.out.println("************AMBIENTE REMOVIDO*************\n");
 			} catch (Exception e) {
 	            e.printStackTrace();
 	        }
@@ -235,6 +239,7 @@ public class admin {
 			Dispositivos disp = (Dispositivos) space.take(templateDispositivo, null, 60 * 1000);
 			disp.ambienteOndeSeEncontra=ambienteQueEleChega;
 			space.write(disp, null, Lease.FOREVER);
+			System.out.println("*****AMBIENTE DO DISPOSITIVO TROCADO******\n");
 		} catch (Exception e) {
             e.printStackTrace();
         }
@@ -266,12 +271,224 @@ public class admin {
 		return "";
 	}//
 	
+	private static void clearConsole()
+	{
+	   try
+	   {
+	       String os = System.getProperty("os.name");
+
+	       if (os.contains("Windows"))
+	       {
+	           Runtime.getRuntime().exec("cls");
+	       }
+	       else
+	       {
+	           Runtime.getRuntime().exec("clear");
+	       }
+	   }
+	   catch (Exception exception)
+	   {
+	       //  Handle exception.
+	   }
+	}
+	
+	public static void PrintListaAmbientes(JavaSpace space) {
+		int i;
+		ArrayList lista=new ArrayList();
+		lista=ListaAmbientes(space);
+		System.out.println("\n**********Listagem de Ambientes***********");
+        for (i = 0; i < lista.size(); i++) {
+			System.out.println("Ambiente:            ->               "+((Ambiente)lista.get(i)).nomeAmbiente);
+		}
+        System.out.println("******************************************\n");
+	}
+	
+	public static void PrintListaDispositivos(JavaSpace space) {
+		int i,j;
+		ArrayList listaDisp=new ArrayList();
+		ArrayList listaAmb=new ArrayList();
+		listaAmb=ListaAmbientes(space);
+		System.out.println("\n*********Listagem de Dispositivos*********");
+		for (j=0;j<listaAmb.size();j++) {
+			listaDisp=ListaDispositivos(space,((Ambiente)listaAmb.get(j)).nomeAmbiente);
+			for (i = 0; i < listaDisp.size(); i++) {
+	        	System.out.println("Dispositivo:       -> "+((Dispositivos)listaDisp.get(i)).nomeDispositivo+" dentro do "+((Ambiente)listaAmb.get(j)).nomeAmbiente);
+			}
+		}		
+        System.out.println("******************************************\n");
+	}
+	
+	public static void PrintListaUser(JavaSpace space) {
+		int i,j;
+		ArrayList listaUser=new ArrayList();
+		ArrayList listaAmb=new ArrayList();
+		listaAmb=ListaAmbientes(space);
+		System.out.println("\n***********Listagem de Usuários***********");
+		for (j=0;j<listaAmb.size();j++) {
+			listaUser=ListaUsuarios(space,((Ambiente)listaAmb.get(j)).nomeAmbiente);
+			for (i = 0; i < listaUser.size(); i++) {
+	        	System.out.println("Usuário:       ->     "+((Usuario)listaUser.get(i)).nomeUsuario+" dentro do "+((Ambiente)listaAmb.get(j)).nomeAmbiente);
+			}
+		}		
+        System.out.println("******************************************\n");
+	}
+
+	public static void MenuAddDispositivo(JavaSpace space) {
+		ArrayList lista=new ArrayList();
+		lista=ListaAmbientes(space);
+		int i;
+		Scanner scanner = new Scanner(System.in);
+		PrintListaAmbientes(space);
+        System.out.print("Em qual ambiente o dispositivo será inserido? ");
+        String ambiente = scanner.nextLine();
+        i = 0;
+        for (i = 0; i < lista.size(); i++) {
+        	if((ambiente.equals(((Ambiente)lista.get(i)).nomeAmbiente))) {
+        		AddDispositivoNoEspaco(space,ambiente);
+        		break;
+        	}
+		}
+        if(i==lista.size()) {
+        	System.out.println("\n*********Ambiente não encontrado**********\n");
+        }
+        Menu(space);
+	}
+	
+	public static void MenuRemoveAmbiente(JavaSpace space) {
+		PrintListaAmbientes(space);
+		ArrayList lista=new ArrayList();
+		Scanner scanner = new Scanner(System.in);
+		lista=ListaAmbientes(space);
+		System.out.print("Qual ambiente será removido? ");
+        String ambiente = scanner.nextLine();
+        int i;
+        for (i = 0; i < lista.size(); i++) {
+        	if((ambiente.equals(((Ambiente)lista.get(i)).nomeAmbiente))) {
+        		RemoveAmbiente(space,ambiente);
+        		break;
+        	}
+		}
+        if(i==lista.size()) {
+        	System.out.println("\n*********Ambiente não encontrado**********\n");
+        }
+        Menu(space);
+		
+	}
+	
+	public static void MenuRemoveDispositivo(JavaSpace space) {
+		PrintListaDispositivos(space);
+		ArrayList listaDisp=new ArrayList();
+		ArrayList listaAmb=new ArrayList();
+		listaAmb=ListaAmbientes(space);
+		Scanner scanner = new Scanner(System.in);
+		listaAmb=ListaAmbientes(space);
+		System.out.print("Qual dispositivo será removido? ");
+        String dispositivo = scanner.nextLine();
+        int i=0,j=0;
+        
+        for (j=0;j<listaAmb.size();j++) {
+			listaDisp=ListaDispositivos(space,((Ambiente)listaAmb.get(j)).nomeAmbiente);
+			for (i = 0; i < listaDisp.size(); i++) {
+				if(((Dispositivos)listaDisp.get(i)).nomeDispositivo.equals(dispositivo)) {
+					RemoveDispositivo(space,((Dispositivos)listaDisp.get(i)).nomeDispositivo);
+					break;
+				}   
+			}
+		}
+        if(j==listaAmb.size() && i==listaDisp.size()) {
+        	System.out.println("\n********Dispositivo não encontrado********\n");
+        }
+        Menu(space);
+	}
+	
+	public static void MenuTrocaAmbDispositivo(JavaSpace space) {
+		PrintListaDispositivos(space);
+		ArrayList listaDisp=new ArrayList();
+		ArrayList listaAmb=new ArrayList();
+		listaAmb=ListaAmbientes(space);
+		Scanner scanner = new Scanner(System.in);
+		System.out.print("Qual o dispositivo que será movido? ");
+        String dispositivo = scanner.nextLine();
+        int i=0,j=0;
+        boolean encontrou=false;
+        for (j=0;j<listaAmb.size();j++) {
+			listaDisp=ListaDispositivos(space,((Ambiente)listaAmb.get(j)).nomeAmbiente);
+			for (i = 0; i < listaDisp.size(); i++) {
+				if(((Dispositivos)listaDisp.get(i)).nomeDispositivo.equals(dispositivo)) {
+					encontrou=true;
+					break;
+				}   
+			}
+		}
+        if(!encontrou) {
+        	System.out.println("\n********Dispositivo não encontrado********\n");
+        }
+        else {
+        	PrintListaAmbientes(space);
+        	System.out.print("Qual o ambiente para o qual será movido? ");
+            String ambiente = scanner.nextLine();
+            for (j = 0; j < listaAmb.size(); j++) {
+            	if((ambiente.equals(((Ambiente)listaAmb.get(j)).nomeAmbiente))) {
+            		//RemoveAmbiente(space,ambiente);
+            		DispositivoTrocaDeAmbiente(space,dispositivo,ambiente);
+            		break;
+            	}
+    		}
+            if(j==listaAmb.size()) {
+            	System.out.println("\n*********Ambiente não encontrado**********\n");
+            }
+        }  
+        Menu(space);
+	}
+	
+	public static void Menu(JavaSpace space) {
+		int opcao=0;
+		clearConsole();
+		Scanner scanner = new Scanner(System.in);
+		System.out.println("****************Menu admin****************");
+		System.out.println("1 -                     Adicionar Ambiente");
+		System.out.println("2 -                  Adicionar Dispositivo");
+		System.out.println("3 -                       Listar Ambientes");
+		System.out.println("4 -                    Listar Dispositivos");
+		System.out.println("5 -                        Listar Usuários");
+		System.out.println("6 -                       Remover Ambiente");
+		System.out.println("7 -                    Remover Dispositivo");
+		System.out.println("8 -         Trocar Ambiente do Dispositivo");
+		System.out.println("******************************************");
+		System.out.print  ("Entre com a opção desejada: ");
+		opcao=scanner.nextInt();
+		switch (opcao) {
+			case 1:
+				AddAmbienteNoEspaco(space);
+				Menu(space);
+			case 2:
+				MenuAddDispositivo(space);
+			case 3:
+				PrintListaAmbientes(space);
+				Menu(space);
+			case 4:
+				PrintListaDispositivos(space);
+				Menu(space);
+			case 5:
+				PrintListaUser(space);
+				Menu(space);
+			case 6:
+				MenuRemoveAmbiente(space);
+			case 7:
+				MenuRemoveDispositivo(space);
+			case 8:
+				MenuTrocaAmbDispositivo(space);
+			default:
+				Menu(space);
+		}
+	}
 	
     
 	public static void main(String[] args) {
     	CountToAll countAmb=new CountToAll();
     	CountToAll countUser=new CountToAll();
     	CountToAll countDisp=new CountToAll();
+    	
     	countAmb.tipoCount="Ambiente";
     	countUser.tipoCount="Usuario";
     	countDisp.tipoCount="Dispositivo";
@@ -299,7 +516,9 @@ public class admin {
             space.write(countDisp, null, Lease.FOREVER);
             //Esse é o ambiente default de todos os outros, o amb1
             AddAmbienteNoEspaco(space);
-            System.out.println("Todos os ambientes serão listados abaixo");
+            Menu(space);
+            
+            /*System.out.println("Todos os ambientes serão listados abaixo");
             //teste ambientes
             lista=ListaAmbientes(space);
             for (int i = 0; i < lista.size(); i++) {
@@ -440,20 +659,8 @@ public class admin {
             System.out.println("Todos os ambientes serão listados abaixo");
             for (int i = 0; i < lista.size(); i++) {
     			System.out.println(((Ambiente)lista.get(i)).nomeAmbiente);
-    		} 
+    		} */
             
-            
-            /*Scanner scanner = new Scanner(System.in);
-            while (true) {
-                System.out.print("Entre com o texto da mensagem (ENTER para sair): ");
-                String message = scanner.nextLine();
-                if (message == null || message.equals("")) {
-                    System.exit(0);
-                }
-                Message msg = new Message();
-                msg.content = message;
-                space.write(msg, null, 60 * 1000);
-            }*/
         } catch (Exception e) {
             e.printStackTrace();
         }

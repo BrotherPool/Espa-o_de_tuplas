@@ -4,6 +4,7 @@ public class Mensagem implements Entry {
     public String mensagem;
     public String quemEnviou;
     public String paraQuemEnviou;
+    public String ambienteOndeSeEncontra;
     public Mensagem() {
     }
 }
